@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Pause, Play, RotateCcw } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 
-export function FocusTimer() {
+export function FocusTimer({ title, description }: { title: string; description: string }) {
   const [seconds, setSeconds] = useState(25 * 60);
   const [running, setRunning] = useState(false);
   const addFocus = useAppStore((state) => state.addFocus);
@@ -19,8 +19,8 @@ export function FocusTimer() {
     <section className="card today-focus">
       <div>
         <span className="eyebrow">Current task</span>
-        <h2>Authentication vs authorisation</h2>
-        <p className="focus-copy">Explain the difference, give a production example, and identify one common access-control mistake.</p>
+        <h2>{title}</h2>
+        <p className="focus-copy">{description}</p>
         <div className="timer" aria-live="polite">{String(Math.floor(seconds / 60)).padStart(2,"0")}:{String(seconds % 60).padStart(2,"0")}</div>
         <div className="focus-actions">
           <button className="primary-button" onClick={() => setRunning(!running)}>{running ? <Pause size={16}/> : <Play size={16}/>} {running ? "Pause" : "Start focus"}</button>

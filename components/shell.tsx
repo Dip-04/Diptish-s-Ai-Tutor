@@ -4,9 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Bell, ChevronDown, HelpCircle, Menu } from "lucide-react";
 import { navItems } from "@/lib/data";
+import { logout } from "@/app/auth/actions";
 import { Logo } from "./logo";
 
-export function Shell({ children }: { children: React.ReactNode }) {
+export function Shell({ children, viewer, goalName }: { children: React.ReactNode; viewer?: { name: string; email: string }; goalName?: string }) {
   const pathname = usePathname();
   return (
     <div className="app-shell">
@@ -29,8 +30,8 @@ export function Shell({ children }: { children: React.ReactNode }) {
         </nav>
         <div className="sidebar-foot">
           <p>INTERVIEW COUNTDOWN</p>
-          <strong>12 days</strong>
-          <span>Application Security Analyst</span>
+          <strong>Active plan</strong>
+          <span>{goalName ?? "No career goal"}</span>
           <div className="countdown-track"><i /></div>
           <small>Monday, 5 August</small>
         </div>
@@ -42,11 +43,13 @@ export function Shell({ children }: { children: React.ReactNode }) {
           <div className="mobile-logo"><Logo /></div>
           <div className="top-actions">
             <button className="icon-button" aria-label="Notifications"><Bell size={19} /><span className="unread" /></button>
-            <button className="profile-button">
-              <span className="avatar">DM</span>
-              <span className="profile-copy"><strong>Dipti Maurya</strong><small>Application Security</small></span>
-              <ChevronDown size={16} />
-            </button>
+            <form action={logout}>
+              <button className="profile-button" title="Sign out">
+                <span className="avatar">{(viewer?.name ?? "A").split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase()}</span>
+                <span className="profile-copy"><strong>{viewer?.name ?? "Account"}</strong><small>{viewer?.email ?? "Sign in"}</small></span>
+                <ChevronDown size={16} />
+              </button>
+            </form>
           </div>
         </header>
         <main className="content">{children}</main>

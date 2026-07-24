@@ -10,7 +10,8 @@ const config = [
       "node_modules-interrupted/**",
       ".next/**",
       "dist/**",
-      "coverage/**"
+      "coverage/**",
+      "next-env.d.ts"
     ]
   },
   ...compat.extends("next/core-web-vitals", "next/typescript")

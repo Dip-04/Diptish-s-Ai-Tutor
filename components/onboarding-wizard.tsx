@@ -3,16 +3,19 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Check, ShieldCheck, Sparkles } from "lucide-react";
+import { completeOnboarding } from "@/app/onboarding/actions";
 
 const steps = ["Profile", "Career goal", "Experience", "Deadline", "Availability", "Skills", "Resume", "Preferences"];
 const roles = ["Application Security Analyst", "Product Security Engineer", "Frontend Developer", "Full-Stack Developer", "Backend Developer", "DevOps Engineer"];
 
 export function OnboardingWizard() {
   const [step, setStep] = useState(0);
+  const [fullName, setFullName] = useState("");
   const [role, setRole] = useState(roles[0]);
+  const [experience, setExperience] = useState("Intermediate");
+  const [interviewDate, setInterviewDate] = useState("");
   const [hours, setHours] = useState(3);
-  const [complete, setComplete] = useState(false);
-  if (complete) return <div className="onboarding-success"><span><Check size={28}/></span><h1>Your roadmap is ready</h1><p>We built a realistic plan around {hours} weekday study hours for your {role} goal.</p><Link className="primary-button" href="/">Open dashboard <ArrowRight size={15}/></Link></div>;
+  const [weekendHours, setWeekendHours] = useState(8);
   return (
     <div className="onboarding-shell">
       <aside className="onboarding-aside">
@@ -31,16 +34,31 @@ export function OnboardingWizard() {
             "This helps us personalise language and recommendations.", "Select the goal that matters most right now.", "We’ll adjust depth and difficulty to match.", "A deadline helps us protect your highest-priority topics.", "We never schedule more work than your availability.", "Be honest—this only improves your plan.", "PDF, DOCX or TXT · you confirm every extracted fact.", "DSA is off by default and always under your control."
           ][step]}</p>
           <div className="wizard-form">
-            {step === 0 && <><label>Full name<input defaultValue="Dipti Maurya"/></label><label>Preferred interview language<select defaultValue="English"><option>English</option><option>Hindi</option><option>Marathi</option><option>English and Hindi</option></select></label></>}
+            {step === 0 && <><label>Full name<input value={fullName} onChange={(event) => setFullName(event.target.value)} placeholder="Your name"/></label><label>Preferred interview language<select defaultValue="English"><option>English</option><option>Hindi</option><option>Marathi</option><option>English and Hindi</option></select></label></>}
             {step === 1 && <div className="choice-grid">{roles.map((item) => <button key={item} className={role === item ? "selected" : ""} onClick={() => setRole(item)}><span>{role === item && <Check size={13}/>}</span>{item}</button>)}</div>}
-            {step === 2 && <div className="choice-grid">{["Beginner","Fresher","0–1 years","1–2 years","2–4 years","4–7 years"].map(item => <button key={item}>{item}</button>)}</div>}
-            {step === 3 && <label>Interview date<input type="date" defaultValue="2026-08-05"/></label>}
-            {step === 4 && <><label>Weekday hours <strong>{hours}h</strong><input type="range" min="1" max="8" value={hours} onChange={(e) => setHours(Number(e.target.value))}/></label><label>Weekend hours<select defaultValue="8"><option>4</option><option>6</option><option>8</option><option>10</option></select></label></>}
+            {step === 2 && <div className="choice-grid">{["Beginner","Fresher","0–1 years","1–2 years","2–4 years","4–7 years"].map(item => <button key={item} className={experience === item ? "selected" : ""} onClick={() => setExperience(item)}>{item}</button>)}</div>}
+            {step === 3 && <label>Interview date<input type="date" value={interviewDate} onChange={(event) => setInterviewDate(event.target.value)}/></label>}
+            {step === 4 && <><label>Weekday hours <strong>{hours}h</strong><input type="range" min="1" max="8" value={hours} onChange={(e) => setHours(Number(e.target.value))}/></label><label>Weekend hours<select value={weekendHours} onChange={(event) => setWeekendHours(Number(event.target.value))}><option>4</option><option>6</option><option>8</option><option>10</option></select></label></>}
             {step === 5 && <div className="skill-ratings">{["HTTP & HTTPS","OWASP Top 10","API Security","Burp Suite"].map((item,index) => <label key={item}><span>{item}</span><input type="range" min="0" max="5" defaultValue={index + 1}/></label>)}</div>}
             {step === 6 && <label className="upload-box"><input type="file" accept=".pdf,.docx,.txt"/><span>Drop a resume or choose a file</span><small>Maximum 5 MB · Safe parsing only</small></label>}
             {step === 7 && <div className="preference-list">{["Theory","Practical coding","Security labs","Interview questions","Mock interviews","Voice practice","Quizzes","Flashcards","DSA (off by default)"].map((item,index) => <label key={item}><input type="checkbox" defaultChecked={index < 8}/><span>{item}</span></label>)}</div>}
           </div>
-          <div className="wizard-actions"><button className="secondary-button" disabled={step === 0} onClick={() => setStep(step - 1)}><ArrowLeft size={15}/>Back</button><button className="primary-button" onClick={() => step === steps.length - 1 ? setComplete(true) : setStep(step + 1)}>{step === steps.length - 1 ? "Generate my roadmap" : "Continue"} <ArrowRight size={15}/></button></div>
+          <div className="wizard-actions">
+            <button className="secondary-button" disabled={step === 0} onClick={() => setStep(step - 1)}><ArrowLeft size={15}/>Back</button>
+            {step === steps.length - 1 ? (
+              <form action={completeOnboarding}>
+                <input type="hidden" name="role" value={role}/>
+                <input type="hidden" name="fullName" value={fullName}/>
+                <input type="hidden" name="experienceLevel" value={experience}/>
+                <input type="hidden" name="interviewDate" value={interviewDate}/>
+                <input type="hidden" name="weekdayHours" value={hours}/>
+                <input type="hidden" name="weekendHours" value={weekendHours}/>
+                <button className="primary-button" type="submit">Save my goal <ArrowRight size={15}/></button>
+              </form>
+            ) : (
+              <button className="primary-button" onClick={() => setStep(step + 1)}>Continue <ArrowRight size={15}/></button>
+            )}
+          </div>
         </div>
       </main>
     </div>
