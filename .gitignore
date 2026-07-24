@@ -1,0 +1,13 @@
+node_modules
+node_modules-interrupted
+.git-backup-*
+package-lock.interrupted.json
+server*.log
+.server*-pid
+.next
+dist
+*.tsbuildinfo
+.env
+.env.local
+coverage
+*.log

@@ -1,0 +1,301 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum RoleLevel {
+  USER
+  SUPPORT_ADMIN
+  REVIEWER
+  CONTENT_ADMIN
+  SUPER_ADMIN
+}
+
+enum RoadmapStatus {
+  DRAFT
+  ACTIVE
+  COMPLETED
+  ARCHIVED
+}
+
+enum TaskType {
+  LEARN
+  PRACTICE
+  BUILD
+  INTERVIEW
+  REVISION
+  QUIZ
+}
+
+enum ProgressStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+  SKIPPED
+  RESCHEDULED
+}
+
+enum Priority {
+  CRITICAL
+  HIGH
+  MEDIUM
+  OPTIONAL
+}
+
+model User {
+  id           String         @id @db.Uuid
+  email        String         @unique
+  role         RoleLevel      @default(USER)
+  profile      UserProfile?
+  goals        CareerGoal[]
+  roadmaps     Roadmap[]
+  resumes      Resume[]
+  skills       UserSkill[]
+  taskProgress TaskProgress[]
+  aiUsage      AIUsage[]
+  auditLogs    AuditLog[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  deletedAt    DateTime?
+}
+
+model UserProfile {
+  id                String   @id @default(uuid()) @db.Uuid
+  userId            String   @unique @db.Uuid
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName          String
+  location          String?
+  preferredLanguage String   @default("English")
+  experienceYears   Decimal? @db.Decimal(4, 1)
+  currentJobTitle   String?
+  timezone          String   @default("Asia/Calcutta")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model Role {
+  id          String       @id @default(uuid()) @db.Uuid
+  slug        String       @unique
+  name        String       @unique
+  description String?
+  goals       CareerGoal[]
+  topics      RoleTopic[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model CareerGoal {
+  id              String    @id @default(uuid()) @db.Uuid
+  userId          String    @db.Uuid
+  roleId          String    @db.Uuid
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role            Role      @relation(fields: [roleId], references: [id])
+  interviewDate   DateTime?
+  experienceLevel String
+  weekdayHours    Decimal   @db.Decimal(4, 1)
+  weekendHours    Decimal   @db.Decimal(4, 1)
+  active          Boolean   @default(true)
+  roadmaps        Roadmap[]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([userId, active])
+}
+
+model Skill {
+  id        String      @id @default(uuid()) @db.Uuid
+  slug      String      @unique
+  name      String      @unique
+  users     UserSkill[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+}
+
+model UserSkill {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @db.Uuid
+  skillId    String   @db.Uuid
+  rating     Int
+  confidence Int      @default(0)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skill      Skill    @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([userId, skillId])
+  @@index([userId])
+}
+
+model Topic {
+  id          String             @id @default(uuid()) @db.Uuid
+  slug        String             @unique
+  name        String
+  description String?
+  roles       RoleTopic[]
+  tasks       RoadmapTask[]
+  resources   LearningResource[]
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+}
+
+model RoleTopic {
+  roleId   String   @db.Uuid
+  topicId  String   @db.Uuid
+  priority Priority
+  role     Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  topic    Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, topicId])
+}
+
+model Roadmap {
+  id           String        @id @default(uuid()) @db.Uuid
+  userId       String        @db.Uuid
+  careerGoalId String        @db.Uuid
+  title        String
+  mode         String
+  status       RoadmapStatus @default(DRAFT)
+  version      Int           @default(1)
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  careerGoal   CareerGoal    @relation(fields: [careerGoalId], references: [id])
+  weeks        RoadmapWeek[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  deletedAt    DateTime?
+
+  @@index([userId, status, createdAt])
+}
+
+model RoadmapWeek {
+  id         String       @id @default(uuid()) @db.Uuid
+  roadmapId  String       @db.Uuid
+  weekNumber Int
+  roadmap    Roadmap      @relation(fields: [roadmapId], references: [id], onDelete: Cascade)
+  days       RoadmapDay[]
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  @@unique([roadmapId, weekNumber])
+}
+
+model RoadmapDay {
+  id             String        @id @default(uuid()) @db.Uuid
+  roadmapWeekId  String        @db.Uuid
+  dayNumber      Int
+  date           DateTime
+  objective      String
+  plannedMinutes Int
+  frozen         Boolean       @default(false)
+  week           RoadmapWeek   @relation(fields: [roadmapWeekId], references: [id], onDelete: Cascade)
+  tasks          RoadmapTask[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([date])
+}
+
+model RoadmapTask {
+  id                 String         @id @default(uuid()) @db.Uuid
+  roadmapDayId       String         @db.Uuid
+  topicId            String?        @db.Uuid
+  title              String
+  type               TaskType
+  estimatedMinutes   Int
+  priority           Priority
+  completionCriteria Json
+  orderIndex         Int
+  day                RoadmapDay     @relation(fields: [roadmapDayId], references: [id], onDelete: Cascade)
+  topic              Topic?         @relation(fields: [topicId], references: [id])
+  progress           TaskProgress[]
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+
+  @@index([roadmapDayId, orderIndex])
+}
+
+model TaskProgress {
+  id            String         @id @default(uuid()) @db.Uuid
+  roadmapTaskId String         @db.Uuid
+  userId        String         @db.Uuid
+  status        ProgressStatus @default(NOT_STARTED)
+  actualMinutes Int?
+  completedAt   DateTime?
+  task          RoadmapTask    @relation(fields: [roadmapTaskId], references: [id], onDelete: Cascade)
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@unique([roadmapTaskId, userId])
+}
+
+model LearningResource {
+  id           String    @id @default(uuid()) @db.Uuid
+  topicId      String    @db.Uuid
+  title        String
+  url          String
+  sourceType   String
+  verifiedAt   DateTime?
+  versionLabel String?
+  topic        Topic     @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([topicId, verifiedAt])
+}
+
+model Resume {
+  id         String       @id @default(uuid()) @db.Uuid
+  userId     String       @db.Uuid
+  storageKey String
+  fileName   String
+  mimeType   String
+  status     String
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  facts      ResumeFact[]
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  deletedAt  DateTime?
+}
+
+model ResumeFact {
+  id        String   @id @default(uuid()) @db.Uuid
+  resumeId  String   @db.Uuid
+  type      String
+  value     String
+  verified  Boolean  @default(false)
+  resume    Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AIUsage {
+  id            String   @id @default(uuid()) @db.Uuid
+  userId        String   @db.Uuid
+  feature       String
+  model         String
+  inputTokens   Int      @default(0)
+  outputTokens  Int      @default(0)
+  estimatedCost Decimal  @default(0) @db.Decimal(12, 6)
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+model AuditLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String?  @db.Uuid
+  action     String
+  entityType String
+  entityId   String?
+  metadata   Json?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt  DateTime @default(now())
+
+  @@index([userId, createdAt])
+}

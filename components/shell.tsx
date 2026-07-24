@@ -1,0 +1,62 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Bell, ChevronDown, HelpCircle, Menu } from "lucide-react";
+import { navItems } from "@/lib/data";
+import { Logo } from "./logo";
+
+export function Shell({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  return (
+    <div className="app-shell">
+      <aside className="sidebar">
+        <div className="sidebar-top"><Logo /></div>
+        <nav aria-label="Main navigation">
+          <p className="nav-heading">Workspace</p>
+          {navItems.slice(0, 8).map(({ label, href, icon: Icon }) => (
+            <Link key={href} href={href} className={`nav-link ${pathname === href ? "active" : ""}`}>
+              <Icon size={18} /><span>{label}</span>
+            </Link>
+          ))}
+          <p className="nav-heading nav-heading-space">Account</p>
+          {navItems.slice(8).map(({ label, href, icon: Icon }) => (
+            <Link key={href} href={href} className={`nav-link ${pathname === href ? "active" : ""}`}>
+              <Icon size={18} /><span>{label}</span>
+            </Link>
+          ))}
+          <Link href="/help" className="nav-link"><HelpCircle size={18} /><span>Help & support</span></Link>
+        </nav>
+        <div className="sidebar-foot">
+          <p>INTERVIEW COUNTDOWN</p>
+          <strong>12 days</strong>
+          <span>Application Security Analyst</span>
+          <div className="countdown-track"><i /></div>
+          <small>Monday, 5 August</small>
+        </div>
+      </aside>
+
+      <div className="main-wrap">
+        <header className="topbar">
+          <button className="icon-button mobile-menu" aria-label="Open navigation"><Menu size={20} /></button>
+          <div className="mobile-logo"><Logo /></div>
+          <div className="top-actions">
+            <button className="icon-button" aria-label="Notifications"><Bell size={19} /><span className="unread" /></button>
+            <button className="profile-button">
+              <span className="avatar">DM</span>
+              <span className="profile-copy"><strong>Dipti Maurya</strong><small>Application Security</small></span>
+              <ChevronDown size={16} />
+            </button>
+          </div>
+        </header>
+        <main className="content">{children}</main>
+      </div>
+      <nav className="mobile-nav" aria-label="Mobile navigation">
+        {navItems.slice(0, 4).map(({ label, href, icon: Icon }) => (
+          <Link key={href} href={href} className={pathname === href ? "active" : ""}><Icon size={19}/><span>{label}</span></Link>
+        ))}
+        <Link href="/settings"><Menu size={19}/><span>More</span></Link>
+      </nav>
+    </div>
+  );
+}
