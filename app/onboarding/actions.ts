@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { generateAndSaveRoadmap } from "@/lib/roadmaps";
 import { createClient } from "@/lib/supabase/server";
 
 export async function completeOnboarding(formData: FormData) {
@@ -64,5 +65,6 @@ export async function completeOnboarding(formData: FormData) {
     })
   ]);
 
-  redirect("/");
+  await generateAndSaveRoadmap(user.id);
+  redirect("/roadmaps");
 }

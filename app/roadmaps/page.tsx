@@ -5,6 +5,7 @@ import { Shell } from "@/components/shell";
 import { PageHeader } from "@/components/page-header";
 import { getDashboardData } from "@/lib/dashboard-data";
 import { createClient } from "@/lib/supabase/server";
+import { generateRoadmap } from "./actions";
 
 export default async function RoadmapsPage() {
   const supabase = await createClient();
@@ -18,8 +19,12 @@ export default async function RoadmapsPage() {
       {!data.roadmap ? (
         <section className="card placeholder-card">
           <h2>No active roadmap</h2>
-          <p>Complete onboarding to create your career goal and study plan.</p>
-          <Link href="/onboarding" className="primary-button">Start onboarding</Link>
+          <p>{data.goal ? "Your career goal is saved. Generate the missing roadmap now." : "Complete onboarding to create your career goal and study plan."}</p>
+          {data.goal ? (
+            <form action={generateRoadmap}><button className="primary-button" type="submit">Generate roadmap</button></form>
+          ) : (
+            <Link href="/onboarding" className="primary-button">Start onboarding</Link>
+          )}
         </section>
       ) : (
         <div className="roadmap-grid">
