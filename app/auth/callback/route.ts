@@ -7,7 +7,9 @@ export async function GET(request: Request) {
   if (code) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) return NextResponse.redirect(new URL("/", url.origin));
+    const next = url.searchParams.get("next");
+    const safeNext = next === "/reset-password" ? next : "/";
+    if (!error) return NextResponse.redirect(new URL(safeNext, url.origin));
   }
   return NextResponse.redirect(new URL("/login?error=Unable%20to%20confirm%20account", url.origin));
 }

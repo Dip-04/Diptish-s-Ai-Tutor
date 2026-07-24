@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CalendarDays, Check, CheckCircle2, ChevronRight, Clock3, Target, TrendingUp } from "lucide-react";
 import { getDashboardData } from "@/lib/dashboard-data";
+import { toggleTask } from "@/app/progress/actions";
 
 type DashboardData = Awaited<ReturnType<typeof getDashboardData>>;
 
@@ -81,13 +82,13 @@ export function Dashboard({ data }: { data: DashboardData }) {
           {todayTasks.map((task) => {
             const done = task.progress[0]?.status === "COMPLETED";
             return (
-              <div key={task.id} className={`task ${done ? "done" : ""}`}>
+              <form key={task.id} action={toggleTask.bind(null, task.id)} className={`task ${done ? "done" : ""}`}>
                 <span className="check">{done && <Check size={14}/>}</span>
                 <span className="task-copy"><strong>{task.title}</strong><small>{task.topic?.name ?? task.type}</small></span>
                 <span className={`type-badge ${task.type.toLowerCase()}`}>{task.type}</span>
                 <span className="task-time"><Clock3 size={14}/>{task.estimatedMinutes} min</span>
-                <ChevronRight size={17}/>
-              </div>
+                <button className="plain-button" type="submit">{done ? "Undo" : "Complete"}<ChevronRight size={17}/></button>
+              </form>
             );
           })}
           {!todayTasks.length && <p>No roadmap tasks are stored yet. Generate a roadmap from onboarding.</p>}

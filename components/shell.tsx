@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, ChevronDown, HelpCircle, Menu } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { navItems } from "@/lib/data";
 import { logout } from "@/app/auth/actions";
 import { Logo } from "./logo";
@@ -15,18 +15,11 @@ export function Shell({ children, viewer, goalName }: { children: React.ReactNod
         <div className="sidebar-top"><Logo /></div>
         <nav aria-label="Main navigation">
           <p className="nav-heading">Workspace</p>
-          {navItems.slice(0, 8).map(({ label, href, icon: Icon }) => (
+          {navItems.map(({ label, href, icon: Icon }) => (
             <Link key={href} href={href} className={`nav-link ${pathname === href ? "active" : ""}`}>
               <Icon size={18} /><span>{label}</span>
             </Link>
           ))}
-          <p className="nav-heading nav-heading-space">Account</p>
-          {navItems.slice(8).map(({ label, href, icon: Icon }) => (
-            <Link key={href} href={href} className={`nav-link ${pathname === href ? "active" : ""}`}>
-              <Icon size={18} /><span>{label}</span>
-            </Link>
-          ))}
-          <Link href="/help" className="nav-link"><HelpCircle size={18} /><span>Help & support</span></Link>
         </nav>
         <div className="sidebar-foot">
           <p>INTERVIEW COUNTDOWN</p>
@@ -39,10 +32,8 @@ export function Shell({ children, viewer, goalName }: { children: React.ReactNod
 
       <div className="main-wrap">
         <header className="topbar">
-          <button className="icon-button mobile-menu" aria-label="Open navigation"><Menu size={20} /></button>
           <div className="mobile-logo"><Logo /></div>
           <div className="top-actions">
-            <button className="icon-button" aria-label="Notifications"><Bell size={19} /><span className="unread" /></button>
             <form action={logout}>
               <button className="profile-button" title="Sign out">
                 <span className="avatar">{(viewer?.name ?? "A").split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase()}</span>
@@ -55,10 +46,9 @@ export function Shell({ children, viewer, goalName }: { children: React.ReactNod
         <main className="content">{children}</main>
       </div>
       <nav className="mobile-nav" aria-label="Mobile navigation">
-        {navItems.slice(0, 4).map(({ label, href, icon: Icon }) => (
+        {navItems.map(({ label, href, icon: Icon }) => (
           <Link key={href} href={href} className={pathname === href ? "active" : ""}><Icon size={19}/><span>{label}</span></Link>
         ))}
-        <Link href="/settings"><Menu size={19}/><span>More</span></Link>
       </nav>
     </div>
   );

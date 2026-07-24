@@ -24,11 +24,9 @@ drop policy if exists "users read own account" on "User";
 create policy "users read own account" on "User"
 for select to authenticated using (id = (select auth.uid()));
 
+-- Account roles are server-managed. Never grant authenticated users direct
+-- UPDATE access to the User row because that would permit role escalation.
 drop policy if exists "users update own account" on "User";
-create policy "users update own account" on "User"
-for update to authenticated
-using (id = (select auth.uid()))
-with check (id = (select auth.uid()));
 
 drop policy if exists "users read own profile" on "UserProfile";
 create policy "users read own profile" on "UserProfile"

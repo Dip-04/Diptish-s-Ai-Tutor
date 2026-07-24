@@ -5,7 +5,6 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "build:vinext": "vinext build",
     "start": "next start",
     "postinstall": "prisma generate",
     "lint": "eslint .",
@@ -38,7 +37,6 @@
     "@types/node": "^22.15.0",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
-    "@vitejs/plugin-rsc": "^0.5.30",
     "eslint": "^9.31.0",
     "eslint-config-next": "^15.4.4",
     "jsdom": "^26.1.0",
@@ -47,8 +45,6 @@
     "tailwindcss": "^4.1.11",
     "tsx": "^4.20.3",
     "typescript": "^5.8.3",
-    "vinext": "^1.0.0-beta.3",
-    "vite": "^8.1.5",
     "vitest": "^3.2.4"
   }
 }

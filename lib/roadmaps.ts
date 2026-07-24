@@ -1,7 +1,7 @@
 import "server-only";
 import { createHash } from "node:crypto";
 import { Priority, RoadmapStatus, TaskType } from "@prisma/client";
-import { OpenAIProvider } from "@/lib/ai/provider";
+import { AIConfigurationError, OpenAIProvider } from "@/lib/ai/provider";
 import type { GeneratedRoadmap, RoadmapInput } from "@/lib/schemas";
 import { prisma } from "@/lib/prisma";
 
@@ -39,7 +39,7 @@ function fallbackRoadmap(input: RoadmapInput): GeneratedRoadmap {
   };
 }
 
-export async function generateAndSaveRoadmap(userId: string) {
+export async function generateAndSaveRoadmap(userId: string, options: { allowStarter?: boolean } = {}) {
   const goal = await prisma.careerGoal.findFirst({
     where: { userId, active: true },
     orderBy: { updatedAt: "desc" },
@@ -66,7 +66,8 @@ export async function generateAndSaveRoadmap(userId: string) {
   let generated: GeneratedRoadmap;
   try {
     generated = await new OpenAIProvider().generateRoadmap(input, safetyIdentifier);
-  } catch {
+  } catch (error) {
+    if (!(error instanceof AIConfigurationError) && !options.allowStarter) throw error;
     generated = fallbackRoadmap(input);
   }
 
@@ -95,7 +96,7 @@ export async function generateAndSaveRoadmap(userId: string) {
         userId,
         careerGoalId: goal.id,
         title: generated.title,
-        mode: generated.mode,
+        mode: generated.notice.startsWith("A starter roadmap") ? "starter" : generated.mode,
         status: RoadmapStatus.ACTIVE,
         weeks: {
           create: [...weeks.entries()].map(([weekNumber, days]) => ({

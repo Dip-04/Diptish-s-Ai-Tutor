@@ -65,6 +65,6 @@ export async function completeOnboarding(formData: FormData) {
     })
   ]);
 
-  await generateAndSaveRoadmap(user.id);
+  await generateAndSaveRoadmap(user.id, { allowStarter: true });
   redirect("/roadmaps");
 }
